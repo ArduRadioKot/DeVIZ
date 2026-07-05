@@ -17,13 +17,6 @@ body {
 
 body, body * {
   font-family: "Montserrat", sans-serif !important;
-  font-weight: 200;
-}
-
-.keep-nunito,
-.keep-nunito * {
-  font-family: "Montserrat", sans-serif !important;
-  font-weight: 200;
 }
 
 .app-shell {
