@@ -1,4 +1,4 @@
-# HubNear
+# DeVIZ
 
 Frontend-часть проекта **dViz / HubNear** на **React + TypeScript + Vite**.
 
