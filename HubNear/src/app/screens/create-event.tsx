@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { ArrowLeft, Upload } from "lucide-react";
 import { useIsMobile } from "../components/ui/use-mobile";
-import { CATEGORIES } from "../data/events";
+const CATEGORIES = ["Все", "Спорт", "Игры", "Культура", "Прогулки", "Еда", "Обучение", "Другое"];
 import { ACCENT } from "../theme";
-import { fieldStyle } from "../constants/styles";
+import * as s from "../constants/styles";
 import type { Event, Screen } from "../types";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -77,13 +77,13 @@ export function CreateEventScreen({
 
       <div style={{ flex: 1, overflowY: "auto", padding: isMobile ? "16px 20px" : "32px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16, maxWidth: 600, margin: "0 auto" }}>
-          <Field label="Активность *"><input type="text" value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Например: Волейбол" style={fieldStyle} /></Field>
-          <Field label="Категория *"><select value={category} onChange={(e) => setCategory(e.target.value)} style={{ ...fieldStyle, background: "#fff" }}>{CATEGORIES.filter((c) => c !== "Все").map((cat) => <option key={cat} value={cat}>{cat}</option>)}</select></Field>
-          <Field label="Время *"><input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="Например: Сегодня 19:00" style={fieldStyle} /></Field>
-          <Field label="Место *"><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Например: Парк Горького" style={fieldStyle} /></Field>
-          <Field label="Нужно участников *"><input type="number" value={needed} onChange={(e) => setNeeded(e.target.value)} placeholder="Например: 12" style={fieldStyle} /></Field>
-          <Field label="Уровень"><select value={level} onChange={(e) => setLevel(e.target.value)} style={{ ...fieldStyle, background: "#fff" }}><option value="Любой">Любой</option><option value="Любительский">Любительский</option><option value="Средний">Средний</option><option value="Продвинутый">Продвинутый</option></select></Field>
-          <Field label="Набор до *"><input type="text" value={deadline} onChange={(e) => setDeadline(e.target.value)} placeholder="Например: 17:30" style={fieldStyle} /></Field>
+          <Field label="Активность *"><input type="text" value={activity} onChange={(e) => setActivity(e.target.value)} placeholder="Например: Волейбол" style={s.field} /></Field>
+          <Field label="Категория *"><select value={category} onChange={(e) => setCategory(e.target.value)} style={{ ...s.field, background: "#fff" }}>{CATEGORIES.filter((c) => c !== "Все").map((cat) => <option key={cat} value={cat}>{cat}</option>)}</select></Field>
+          <Field label="Время *"><input type="text" value={time} onChange={(e) => setTime(e.target.value)} placeholder="Например: Сегодня 19:00" style={s.field} /></Field>
+          <Field label="Место *"><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Например: Парк Горького" style={s.field} /></Field>
+          <Field label="Нужно участников *"><input type="number" value={needed} onChange={(e) => setNeeded(e.target.value)} placeholder="Например: 12" style={s.field} /></Field>
+          <Field label="Уровень"><select value={level} onChange={(e) => setLevel(e.target.value)} style={{ ...s.field, background: "#fff" }}><option value="Любой">Любой</option><option value="Любительский">Любительский</option><option value="Средний">Средний</option><option value="Продвинутый">Продвинутый</option></select></Field>
+          <Field label="Набор до *"><input type="text" value={deadline} onChange={(e) => setDeadline(e.target.value)} placeholder="Например: 17:30" style={s.field} /></Field>
           <Field label="Изображение">
             <input
               ref={fileInputRef}
@@ -97,7 +97,7 @@ export function CreateEventScreen({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  ...fieldStyle,
+                  ...s.field,
                   flex: 1,
                   display: "flex",
                   alignItems: "center",
@@ -117,7 +117,7 @@ export function CreateEventScreen({
                 <span style={{ fontFamily: "Montserrat, sans-serif", fontSize: 13 }}>{filePreview ? "Изменить" : "Загрузить с устройства"}</span>
               </button>
               <span style={{ display: "flex", alignItems: "center", color: "#d1d5db" }}>или</span>
-              <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/img.jpg" style={{ ...fieldStyle, flex: 1 }} />
+              <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/img.jpg" style={{ ...s.field, flex: 1 }} />
             </div>
             {filePreview && (
               <button

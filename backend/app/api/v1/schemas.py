@@ -1,8 +1,10 @@
+import re
 from datetime import datetime
-from typing import Generic, Literal, TypeVar
+from typing import Annotated, Generic, Literal, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic.networks import EmailStr
 
 ActivityLevel = Literal["any", "beginner", "amateur", "confident"]
 ActivityStatus = Literal["open", "confirmed", "full", "cancelled", "expired", "completed"]
@@ -16,6 +18,11 @@ ViewerBlockReason = Literal[
 ]
 
 T = TypeVar("T")
+
+
+PASSWORD_REGEX = re.compile(
+    r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+={}[\]|:;\"'<>,.?/~`]).{8,128}$"
+)
 
 
 class Page(BaseModel, Generic[T]):
@@ -70,7 +77,7 @@ class ActivityListItem(BaseModel):
     id: UUID
     title: str
     category: str
-    level: ActivityLevel
+    level: str
     city: CityBrief
     address: str
     location: GeoPoint
@@ -81,6 +88,7 @@ class ActivityListItem(BaseModel):
     status: ActivityStatus
     price: Price | None
     viewer: ActivityViewerState
+    organizer: UserBrief
 
 
 class ActivityDetail(ActivityListItem):
@@ -172,3 +180,124 @@ class Device(BaseModel):
 class CatalogItem(BaseModel):
     code: str
     title: str
+
+
+class AuthRegister(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    name: str = Field(min_length=1, max_length=120)
+    city_id: UUID | None = None
+    timezone: str = "Europe/Moscow"
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, v: str) -> str:
+        if not PASSWORD_REGEX.match(v):
+            raise ValueError(
+                "Password must be 8-128 characters with at least one uppercase letter, "
+                "one lowercase letter, one digit, and one special character"
+            )
+        return v
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, v: str) -> str:
+        return v.lower().strip()
+
+    @field_validator("name")
+    @classmethod
+    def sanitize_name(cls, v: str) -> str:
+        return v.strip()
+
+
+class AuthLogin(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, v: str) -> str:
+        return v.lower().strip()
+
+
+class AuthToken(BaseModel):
+    token: str
+    user: MeProfile
+
+
+class PasswordChange(BaseModel):
+    current_password: str = Field(min_length=1)
+    new_password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_new_password(cls, v: str) -> str:
+        if not PASSWORD_REGEX.match(v):
+            raise ValueError(
+                "Password must be 8-128 characters with at least one uppercase letter, "
+                "one lowercase letter, one digit, and one special character"
+            )
+        return v
+
+
+class Friend(BaseModel):
+    id: UUID
+    name: str
+    avatar_url: str | None
+    mutual_events: int = 0
+    created_at: datetime
+
+
+class FriendRequest(BaseModel):
+    id: UUID
+    user: UserBrief
+    status: Literal["pending", "accepted", "rejected"]
+    created_at: datetime
+
+
+class ChatBrief(BaseModel):
+    id: UUID
+    type: Literal["event", "direct"]
+    name: str
+    event_id: UUID | None
+    last_message: str | None = None
+    last_message_at: datetime | None = None
+    unread_count: int = 0
+    member_count: int = 0
+    created_at: datetime
+
+
+class ChatDetail(ChatBrief):
+    members: list[Participant] = []
+
+
+class ChatCreate(BaseModel):
+    type: Literal["event", "direct"]
+    name: str = Field(min_length=1, max_length=240)
+    member_ids: list[UUID] = Field(min_length=1, max_length=100)
+
+
+class MessageSend(BaseModel):
+    text: str = Field(min_length=1, max_length=5000)
+
+
+class MessageOut(BaseModel):
+    id: UUID
+    chat_id: UUID
+    user: UserBrief
+    text: str
+    created_at: datetime
+
+
+class UserPlace(BaseModel):
+    id: UUID
+    name: str
+    image_url: str | None
+    location: GeoPoint | None
+    created_at: datetime
+
+
+class UserPlaceCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=240)
+    image_url: str | None = Field(default=None, max_length=500)
+    location: GeoPoint | None = None

@@ -4,22 +4,45 @@ from uuid import UUID
 from fastapi import Header, status
 
 from app.api.errors import raise_api_error
+from app.redis import get_user_id_from_session
 
 
-def get_optional_user_id(
-    user_id: Annotated[UUID | None, Header(alias="X-User-Id")] = None,
+async def get_optional_user_id(
+    authorization: Annotated[str | None, Header()] = None,
 ) -> UUID | None:
-    return user_id
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization.removeprefix("Bearer ").strip()
+    if not token:
+        return None
+    uid = await get_user_id_from_session(token)
+    return UUID(uid) if uid else None
 
 
-def get_current_user_id(
-    user_id: Annotated[UUID | None, Header(alias="X-User-Id")] = None,
+async def get_current_user_id(
+    authorization: Annotated[str | None, Header()] = None,
 ) -> UUID:
-    if user_id is None:
+    if not authorization or not authorization.startswith("Bearer "):
         raise_api_error(
             status.HTTP_401_UNAUTHORIZED,
             "auth_required",
-            "X-User-Id header is required until auth is implemented",
+            "Authorization header with Bearer token is required",
         )
 
-    return user_id
+    token = authorization.removeprefix("Bearer ").strip()
+    if not token:
+        raise_api_error(
+            status.HTTP_401_UNAUTHORIZED,
+            "auth_required",
+            "Authorization header with Bearer token is required",
+        )
+
+    uid = await get_user_id_from_session(token)
+    if uid is None:
+        raise_api_error(
+            status.HTTP_401_UNAUTHORIZED,
+            "session_expired",
+            "Session expired or invalid. Please log in again.",
+        )
+
+    return UUID(uid)

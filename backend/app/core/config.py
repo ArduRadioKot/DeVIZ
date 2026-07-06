@@ -3,6 +3,13 @@ import os
 from sqlalchemy.engine import URL
 
 
+def get_env_or_raise(key: str) -> str:
+    value = os.getenv(key)
+    if not value:
+        raise RuntimeError(f"Environment variable {key} is required")
+    return value
+
+
 def build_database_url() -> str:
     database_url = os.getenv("DATABASE_URL")
     if database_url:
@@ -10,8 +17,8 @@ def build_database_url() -> str:
 
     return URL.create(
         "postgresql+psycopg",
-        username=os.getenv("POSTGRES_USER", "dvizh"),
-        password=os.getenv("POSTGRES_PASSWORD", "dvizh"),
+        username=get_env_or_raise("POSTGRES_USER"),
+        password=get_env_or_raise("POSTGRES_PASSWORD"),
         host=os.getenv("POSTGRES_HOST", "localhost"),
         port=int(os.getenv("POSTGRES_PORT", "5432")),
         database=os.getenv("POSTGRES_DB", "dvizh"),
