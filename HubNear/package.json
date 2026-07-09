@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backend": "pip install uv -q 2>/dev/null; cd ../backend && export $(grep -v '^#' .env | xargs) && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

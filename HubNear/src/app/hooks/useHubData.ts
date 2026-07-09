@@ -109,6 +109,7 @@ export function useHubData(): HubData {
 
   const {
     notifications,
+    setNotifications,
     unreadNotifications,
     loadNotifications,
     handleMarkNotificationRead,
