@@ -48,7 +48,7 @@ async def register(
     request: Request,
 ) -> dict:
     ip = _get_client_ip(request)
-    allowed, _ = await rate_limiter.check(f"register:ip:{ip}", max_attempts=3, window=3600)
+    allowed, _ = await rate_limiter.check(f"register:ip:{ip}", max_attempts=10, window=1200)
     if not allowed:
         raise_api_error(
             status.HTTP_429_TOO_MANY_REQUESTS,

@@ -20,7 +20,7 @@ async def get_profile_or_404(connection: AsyncConnection, user_id: UUID) -> MePr
     return await get_user_profile(connection, user_id)
 
 
-@router.get("", response_model=MeProfile)
+@router.get("/", response_model=MeProfile)
 async def get_me(
     connection: Annotated[AsyncConnection, Depends(get_connection)],
     current_user_id: Annotated[UUID, Depends(get_current_user_id)],
@@ -28,7 +28,7 @@ async def get_me(
     return await get_profile_or_404(connection, current_user_id)
 
 
-@router.patch("", response_model=MeProfile)
+@router.patch("/", response_model=MeProfile)
 async def update_me(
     payload: MeUpdate,
     connection: Annotated[AsyncConnection, Depends(get_connection)],

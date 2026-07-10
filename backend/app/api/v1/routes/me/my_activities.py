@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 from app.api.errors import raise_api_error
 from app.api.v1.dependencies import get_current_user_id
 from app.api.v1.pagination import decode_activity_cursor, encode_activity_cursor
-from app.api.v1.routes.activities import activity_list_item_from_row, activity_select
+from app.api.v1.repositories.activity_repo import activity_list_item_from_row, activity_select
 from app.api.v1.schemas import ActivityListItem, Page
 from app.db import get_connection
 
