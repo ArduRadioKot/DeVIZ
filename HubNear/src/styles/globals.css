@@ -17,13 +17,6 @@ body {
 
 body, body * {
   font-family: "Montserrat", sans-serif !important;
-  font-weight: 200;
-}
-
-.keep-nunito,
-.keep-nunito * {
-  font-family: "Montserrat", sans-serif !important;
-  font-weight: 200;
 }
 
 .app-shell {
@@ -114,4 +107,9 @@ body, body * {
   .feed-posts {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
