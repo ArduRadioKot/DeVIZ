@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "db:up": "cd .. && docker compose up -d db redis && sleep 3 && cd backend && export $(grep -v '^#' .env | xargs) && uv run alembic upgrade head",
+    "db:up": "cd .. && (docker compose up -d db redis || docker-compose up -d db redis) && sleep 3 && cd backend && export $(grep -v '^#' .env | xargs) && uv run alembic upgrade head",
     "backend": "pip install uv -q 2>/dev/null; cd ../backend && export $(grep -v '^#' .env | xargs) && uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000"
   },
   "dependencies": {
