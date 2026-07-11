@@ -23,44 +23,50 @@ chmod +x setup-server.sh
 ```
 
 This will:
-- Install PostgreSQL with PostGIS
-- Install Redis
-- Create database `dvizh` with user `dvizh`
-- Enable required extensions
+- Install Docker
+- Install docker-compose
+- Start Docker service
 
 ## Step 3: Upload .env File
 
-Upload the .env file to the backend directory:
+Upload the .env file to the project directory:
 ```bash
-scp .env user1@82.202.142.35:/home/user1/DeVIZ/backend/.env
+scp .env user1@82.202.142.35:/home/user1/DeVIZ/.env
 ```
 
-## Step 4: Run Database Migrations
+## Step 4: Start Docker Services
+
+SSH into the server and start PostgreSQL and Redis via docker-compose:
+```bash
+ssh user1@82.202.142.35
+cd /home/user1/DeVIZ
+docker-compose up -d
+```
+
+## Step 5: Run Database Migrations
 
 SSH into the server and run migrations:
 ```bash
 ssh user1@82.202.142.35
 cd /home/user1/DeVIZ/backend
-export $(grep -v '^#' .env | xargs)
+export POSTGRES_HOST=db
+export $(grep -v '^#' ../.env | xargs)
 uv run alembic upgrade head
 ```
 
-## Step 5: Restart Backend
+## Step 6: Restart Backend
 
 Restart the backend process with PM2:
 ```bash
 pm2 restart backend
 ```
 
-## Step 6: Verify Services
+## Step 7: Verify Services
 
 Check that all services are running:
 ```bash
-# Check PostgreSQL
-sudo systemctl status postgresql
-
-# Check Redis
-sudo systemctl status redis
+# Check Docker containers
+docker ps
 
 # Check backend
 pm2 status
