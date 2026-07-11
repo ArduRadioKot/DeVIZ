@@ -6,6 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   server: {
+    allowedHosts: ['ecocheck.space'],
     proxy: {
       "/api": {
         target: "http://localhost:8000",
