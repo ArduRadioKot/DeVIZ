@@ -11,8 +11,13 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:8000",
         changeOrigin: true,
+        ws: true,
       },
     },
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 8000,
   },
   plugins: [
     react(),

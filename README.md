@@ -123,6 +123,168 @@ make test
 # Или: cd backend && uv run pytest tests/ -v
 ```
 
+## Деплой на сервер (ecocheck.space)
+
+### Архитектура продакшена
+
+```
+                    :8000                    :8001
+                  ┌───────┐              ┌────────┐
+ecocheck.space ──►│ nginx │── /api ──►  │ FastAPI│
+                  │       │             │   :8000 │
+                  │ static│             └────┬───┘
+                  │ files │                  │
+                  └───────┘           ┌──────┴──────┐
+                                      │  PostgreSQL  │
+                                      │    Redis     │
+                                      └─────────────┘
+```
+
+### Пошаговая инструкция
+
+#### 1. Подготовка сервера
+
+```bash
+# Установить Docker
+curl -fsSL https://get.docker.com | sh
+
+# Установить Node.js 20+
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# Установить nginx
+sudo apt-get install -y nginx
+
+# Установить certbot для HTTPS
+sudo apt-get install -y certbot python3-certbot-nginx
+```
+
+#### 2. Клонировать репозиторий
+
+```bash
+cd /opt
+git clone <repository-url> HubNear
+cd HubNear
+```
+
+#### 3. Настроить окружение
+
+```bash
+# Создать .env файл
+cat > .env << 'EOF'
+POSTGRES_DB=dvizh
+POSTGRES_USER=dvizh
+POSTGRES_PASSWORD=<сгенерируйте_надежный_пароль>
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+API_PORT=8001
+EOF
+```
+
+#### 4. Запустить бекенд и базу данных
+
+```bash
+# Запустить в фоновом режиме
+docker compose up -d
+
+# Применить миграции
+cd backend
+export $(grep -v '^#' ../.env | xargs)
+uv run alembic upgrade head
+cd ..
+```
+
+#### 5. Собрать и развернуть фронтенд
+
+```bash
+# Собрать фронтенд
+cd HubNear
+npm install
+npm run build
+cd ..
+
+# Скопировать файлы
+sudo mkdir -p /var/www/ecocheck/landing /var/www/ecocheck/app
+sudo cp -r HubNear/dist/* /var/www/ecocheck/app/
+sudo cp -r landing/* /var/www/ecocheck/landing/
+sudo chown -R www-data:www-data /var/www/ecocheck
+```
+
+#### 6. Настроить nginx
+
+```bash
+# Скопировать конфигурацию
+sudo cp nginx.conf /etc/nginx/sites-available/ecocheck
+
+# Активировать сайт
+sudo ln -sf /etc/nginx/sites-available/ecocheck /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Проверить конфигурацию
+sudo nginx -t
+
+# Перезапустить nginx
+sudo systemctl restart nginx
+```
+
+#### 7. Настроить HTTPS (Let's Encrypt)
+
+```bash
+# Получить сертификат
+sudo certbot --nginx -d ecocheck.space
+
+# Автоматическое обновление сертификатов
+sudo systemctl enable certbot.timer
+```
+
+#### 8. Настроить автозапуск
+
+```bash
+# Создать systemd сервис для бекенда
+sudo cat > /etc/systemd/system/ecocheck-api.service << 'EOF'
+[Unit]
+Description=EcoCheck API
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/HubNear
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl enable ecocheck-api.service
+```
+
+### Полезные команды
+
+```bash
+# Проверить статус сервисов
+docker compose ps
+
+# Посмотреть логи бекенда
+docker compose logs -f api
+
+# Пересобрать фронтенд после изменений
+cd HubNear && npm run build
+sudo cp -r dist/* /var/www/ecocheck/app/
+
+# Обновить лендинг после изменений
+sudo cp -r landing/* /var/www/ecocheck/landing/
+
+# Перезапустить nginx
+sudo systemctl reload nginx
+
+# Проверить доступность API
+curl https://ecocheck.space/health
+```
+
 ## Стек
 
 | Компонент | Технология |
@@ -176,7 +338,7 @@ make test
 - Rate limiter: регистрация (3/ч), логин (20/15мин), смена пароля (5/15мин)
 - Валидация email (`email-validator`)
 - Email нормализация, скрытие существования email
-- CORS (только localhost и `*.hubnear.app`)
+- CORS (только localhost, `ecocheck.space` и `*.hubnear.app`)
 - Security headers: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy, Permissions-Policy
 - PostgreSQL trigger-based валидация (без race condition)
 - Секреты только через переменные окружения
