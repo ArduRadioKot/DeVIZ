@@ -25,13 +25,13 @@ migrate-reset:
 
 # ─── Frontend ──────────────────────────────────────────
 dev-frontend:
-	cd HubNear && npm run dev
+	cd frontend && npm run dev
 
 build-frontend:
-	cd HubNear && npm run build
+	cd frontend && npm run build
 
 preview:
-	cd HubNear && npm run preview
+	cd frontend && npm run preview
 
 # ─── Backend ────────────────────────────────────────────
 dev-backend:
@@ -46,7 +46,7 @@ test-coverage:
 
 # ─── Lint ────────────────────────────────────────────────
 lint-frontend:
-	cd HubNear && npx tsc --noEmit
+	cd frontend && npx tsc --noEmit
 
 lint-backend:
 	cd backend && uv run ruff check .
